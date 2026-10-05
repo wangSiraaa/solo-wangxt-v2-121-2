@@ -96,3 +96,61 @@ def test_export_json_declares_scope_and_range(client):
     assert "不外推" in js["scope_notice"]
     assert js["result"]["applicable_range"]["extrapolation"] == "none"
     assert "PCHIP" in js["result"]["method"]["interpolation"]
+
+
+def test_solve_end_temp_monotone_segment_checkable(client):
+    exps = client.get("/api/experiments").json()
+    bid = exps[1]["id"]  # 示例B：结点 (185, 41%) → (230, 53%)
+    r = client.post(
+        f"/api/experiments/{bid}/solve-end-temp",
+        json={"start_temp_c": 185, "target_yield_pct": 12},
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["ok"] and body["basis"] == "volume"
+    # 目标 12% => 累积回收 41+12=53% => 恰为结点 230 ℃，可核对
+    assert body["suggested_end_temp_c"] == 230
+    assert body["actual_yield_pct"] == 12
+    assert body["achievable_yield_pct"] == [0.0, 59.0]  # R_max 100 − R(185) 41
+    assert body["plateau"] is None
+
+
+def test_solve_end_temp_out_of_reach_rejects_and_changes_nothing(client):
+    exps = client.get("/api/experiments").json()
+    aid = exps[0]["id"]  # 示例A：R(55)=5%，R_max=90%（340 ℃）
+    before = client.get(f"/api/experiments/{aid}").json()["plans"]
+    r = client.post(
+        f"/api/experiments/{aid}/solve-end-temp",
+        json={"start_temp_c": 55, "target_yield_pct": 95},
+    )
+    assert r.status_code == 200  # 业务拒绝，非请求格式错误
+    body = r.json()
+    assert not body["ok"]
+    assert body["suggested_end_temp_c"] is None
+    assert body["achievable_yield_pct"] == [0.0, 85.0]
+    assert any(i["code"] == "target_out_of_reach" for i in body["issues"])
+    # 求解不落库：方案列表不变
+    after = client.get(f"/api/experiments/{aid}").json()["plans"]
+    assert before == after
+
+
+def test_solve_end_temp_validates_input_and_range(client):
+    exps = client.get("/api/experiments").json()
+    bid = exps[1]["id"]
+    # 负目标产率 => 请求校验 422
+    assert client.post(
+        f"/api/experiments/{bid}/solve-end-temp",
+        json={"start_temp_c": 185, "target_yield_pct": -3},
+    ).status_code == 422
+    # 起始温度越界 => 业务拒绝，明确不外推
+    body = client.post(
+        f"/api/experiments/{bid}/solve-end-temp",
+        json={"start_temp_c": 700, "target_yield_pct": 5},
+    ).json()
+    assert not body["ok"]
+    assert any(i["code"] == "solve_start_out_of_range" for i in body["issues"])
+    # 不存在的试验 => 404
+    assert client.post(
+        "/api/experiments/99999/solve-end-temp",
+        json={"start_temp_c": 100, "target_yield_pct": 5},
+    ).status_code == 404

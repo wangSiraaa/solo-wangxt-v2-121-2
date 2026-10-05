@@ -147,3 +147,29 @@ export interface CurveSample {
   issues: Issue[];
   has_blocking_errors: boolean;
 }
+
+export interface SolveEndTempRequest {
+  start_temp_c: number;
+  target_yield_pct: number;
+}
+
+export interface SolvePlateau {
+  from_temp_c: number;
+  to_temp_c: number;
+  note: string;
+}
+
+export interface SolveEndTempResult {
+  ok: boolean;
+  basis: "volume";
+  basis_note: string;
+  start_temp_c: number;
+  target_yield_pct: number;
+  achievable_yield_pct: [number, number] | null;
+  recovery_at_start_pct: number | null;
+  suggested_end_temp_c: number | null;
+  actual_yield_pct: number | null;
+  recovery_at_end_pct: number | null;
+  plateau: SolvePlateau | null;
+  issues: Issue[];
+}

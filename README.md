@@ -43,6 +43,15 @@
      试验损失是"未回收残渣"内部的明细（净额 = 毛额 − 损失），不另外相加。
    - 质量基准同一套区间逻辑；若密度表/进料密度不自洽（反算馏出液平均密度与
      进料密度不符），给出残差与核实建议，体积平衡仍成立。
+7. **按目标产率反推终止切点**（`solve.py`）：已知馏分起始温度与目标**体积**
+   产率，在 PCHIP 曲线上解 `R(T_end) − R(start) = 目标`：
+   - 只在实测温度范围内求解，可达产率范围为 `[0, R(T_max) − R(start)]`；
+     目标超出即明确拒绝（`ok=false` + 可达范围），不外推、不改方案；
+   - 目标按体积百分数理解（曲线纵轴即体积基准），不把质量% 当体积%；
+   - 平台段多解（解集为连续区间）时取**最早可用温度**，并报告整个平台
+     区间与说明，选择规则对同一输入恒定；
+   - 返回建议温度与 PCHIP 复核的实际产率供核对；求解不落库，前端应用
+     建议后即为整体预览，保存与否由用户决定。
 
 ## 三组内置算例（`data/seed.json`）
 
@@ -89,7 +98,7 @@ npm run dev        # http://localhost:5173 ，/api 已代理到 8000
 ### 测试
 
 ```bash
-cd backend && python3 -m pytest -q   # 26 个用例：插值/密度/重叠/缺口/闭合/API
+cd backend && python3 -m pytest -q   # 43 个用例：插值/密度/重叠/缺口/闭合/反推切点/API
 cd web && npm run build              # tsc 类型检查 + 构建
 ```
 
@@ -101,6 +110,7 @@ cd web && npm run build              # tsc 类型检查 + 构建
 | POST | `/api/experiments` | 录入试验（曲线下降等硬错误返回 422 及问题清单） |
 | GET | `/api/experiments/{id}/curve/sample` | 实测范围内的 PCHIP 取样曲线（画图用） |
 | POST | `/api/experiments/{id}/evaluate` | 按切点实时计算，不落库 |
+| POST | `/api/experiments/{id}/solve-end-temp` | 按目标体积产率反推终止切点（可达范围/建议温度/实际产率/平台段说明），不落库 |
 | POST | `/api/experiments/{id}/plans` | 保存方案（同时存结果快照） |
 | GET | `/api/plans/{id}/export?format=markdown\|json` | 导出 |
 

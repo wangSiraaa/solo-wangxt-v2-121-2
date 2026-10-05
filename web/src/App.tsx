@@ -5,6 +5,7 @@ import type {
 } from "./types";
 import CurveChart from "./components/CurveChart";
 import CutEditor from "./components/CutEditor";
+import SolveEndTempPanel from "./components/SolveEndTempPanel";
 import ResultsPanel from "./components/ResultsPanel";
 import IssuesPanel from "./components/IssuesPanel";
 
@@ -182,6 +183,18 @@ export default function App() {
             onBasisChange={setBasis}
             onPlanNameChange={setPlanName}
           />
+
+          {expId !== null && (
+            <SolveEndTempPanel
+              expId={expId}
+              cuts={cuts}
+              onApply={(i, t) =>
+                setCuts((prev) =>
+                  prev.map((c, j) => (j === i ? { ...c, end_temp_c: t } : c))
+                )
+              }
+            />
+          )}
 
           <ResultsPanel result={result} basis={basis} />
 

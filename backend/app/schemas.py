@@ -73,3 +73,11 @@ class PlanOut(BaseModel):
     result_snapshot: dict | None = None
 
     model_config = {"from_attributes": True}
+
+
+# ---- 按目标产率反推终止切点 ----
+class SolveEndTempIn(BaseModel):
+    start_temp_c: float = Field(..., description="馏分起始温度 ℃（必须在实测范围内）")
+    target_yield_pct: float = Field(
+        ..., ge=0, le=100, description="目标体积产率 %（进料体积基准，非质量%）"
+    )
