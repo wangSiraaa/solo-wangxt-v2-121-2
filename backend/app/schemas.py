@@ -63,6 +63,15 @@ class PlanIn(BaseModel):
     loss_pct: float = Field(default=0.0, ge=0, le=100)
 
 
+# ---- 按目标产率求终点 ----
+class SolveEndIn(BaseModel):
+    start_temp_c: float = Field(..., description="馏分起点（初馏点）温度 ℃")
+    target_yield_pct: float = Field(
+        ..., ge=0, le=100,
+        description="目标体积产率 %（进料体积基准；质量 % 需先经密度换算，不可直接代入）",
+    )
+
+
 class PlanOut(BaseModel):
     id: int
     experiment_id: int

@@ -3,6 +3,8 @@ import type {
   EvalResult,
   Experiment,
   PlanInput,
+  SolveEndRequest,
+  SolveEndResult,
 } from "./types";
 
 async function req<T>(url: string, init?: RequestInit): Promise<T> {
@@ -40,6 +42,11 @@ export const api = {
       `/api/experiments/${id}/plans`,
       { method: "POST", body: JSON.stringify(plan) }
     ),
+  solveEnd: (id: number, body: SolveEndRequest) =>
+    req<SolveEndResult>(`/api/experiments/${id}/solve-end`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   seed: () =>
     req<{ loaded_experiments: number }>("/api/seed", { method: "POST" }),
 };

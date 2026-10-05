@@ -5,6 +5,7 @@ import type {
 } from "./types";
 import CurveChart from "./components/CurveChart";
 import CutEditor from "./components/CutEditor";
+import YieldSolver from "./components/YieldSolver";
 import ResultsPanel from "./components/ResultsPanel";
 import IssuesPanel from "./components/IssuesPanel";
 
@@ -35,6 +36,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [savedId, setSavedId] = useState<number | null>(null);
   const [seedMsg, setSeedMsg] = useState<string | null>(null);
+  // 求解器建议终点的图上预览线（应用或重解后清除）
+  const [previewTemp, setPreviewTemp] = useState<number | null>(null);
 
   useEffect(() => {
     api.listExperiments()
@@ -49,6 +52,7 @@ export default function App() {
     if (expId === null) return;
     setError(null);
     setResult(null);
+    setPreviewTemp(null);
     Promise.all([api.getExperiment(expId), api.curveSample(expId)])
       .then(([exp, s]) => {
         setExperiment(exp);
@@ -125,6 +129,10 @@ export default function App() {
     }
   };
 
+  // 求解器“应用”：只改编辑器里的终馏点，触发预览重算，不落库
+  const applySolvedEnd = (i: number, endTemp: number) =>
+    setCuts((cs) => cs.map((c, j) => (j === i ? { ...c, end_temp_c: endTemp } : c)));
+
   return (
     <div className="app">
       <header>
@@ -168,7 +176,7 @@ export default function App() {
 
       {sample && result && (
         <>
-          <CurveChart sample={sample} cuts={cuts} overlaps={result.overlaps} />
+          <CurveChart sample={sample} cuts={cuts} overlaps={result.overlaps} previewTemp={previewTemp} />
           <IssuesPanel issues={result.issues} />
 
           <CutEditor
@@ -181,6 +189,15 @@ export default function App() {
             onLossChange={setLossPct}
             onBasisChange={setBasis}
             onPlanNameChange={setPlanName}
+          />
+
+          <YieldSolver
+            key={expId}
+            expId={expId!}
+            cuts={cuts}
+            basis={basis}
+            onApply={applySolvedEnd}
+            onPreview={setPreviewTemp}
           />
 
           <ResultsPanel result={result} basis={basis} />

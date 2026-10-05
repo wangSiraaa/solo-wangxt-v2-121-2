@@ -102,3 +102,29 @@ tr.sum td { background: #f8fafc; font-weight: 600; }
 }
 .banner.error button { border: none; background: none; color: inherit; cursor: pointer; font-size: 16px; }
 .seed-msg { font-size: 13px; color: #166534; }
+
+/* 按目标产率求终点 */
+.solver { border: 1px solid var(--border); border-radius: 8px; padding: 4px 12px 12px; margin: 12px 0; }
+.solver h3 { margin: 10px 0 8px; }
+.solver .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+.solver label { font-size: 13px; color: #374151; display: flex; flex-direction: column; gap: 4px; }
+.solver input, .solver select { padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 5px; font-size: 13px; }
+.solver-warn {
+  background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+  border-radius: 6px; padding: 6px 10px; font-size: 13px; margin: 8px 0;
+}
+.solver-result { margin-top: 10px; border-radius: 6px; padding: 8px 12px; font-size: 13.5px; border: 1px solid; }
+.solver-result.ok { background: #f0fdf4; border-color: #bbf7d0; color: #14532d; }
+.solver-result.reject { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+.solver-result .headline { margin-bottom: 2px; }
+.solver-result .big { font-size: 17px; font-weight: 700; }
+.solver-result .range-note { margin-left: 12px; font-size: 12.5px; color: #475569; }
+.solver-result ul { margin: 6px 0; padding-left: 20px; }
+.solver-result li { margin: 3px 0; }
+.solver-result .plateau-note { font-weight: 600; margin: 4px 0; }
+.solver-result .solver-issue { font-size: 12.5px; margin-top: 4px; }
+.solver-result .btn { margin-top: 4px; }
+.applied-note {
+  margin: 8px 0 0; font-size: 13px; color: #1e40af;
+  background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 6px 10px;
+}

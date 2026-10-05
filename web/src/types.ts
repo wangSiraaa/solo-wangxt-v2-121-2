@@ -147,3 +147,30 @@ export interface CurveSample {
   issues: Issue[];
   has_blocking_errors: boolean;
 }
+
+export interface SolveEndRequest {
+  start_temp_c: number;
+  target_yield_pct: number;
+}
+
+export interface SolveEndResult {
+  feasible: boolean;
+  reason: "curve_invalid" | "start_out_of_range" | "target_unreachable" | null;
+  basis: string;
+  start_temp_c: number;
+  start_recovery_pct: number | null;
+  target_yield_pct: number;
+  target_recovery_pct: number | null;
+  achievable_yield_pct: [number, number] | null;
+  suggested_end_temp_c: number | null;
+  actual_yield_pct: number | null;
+  multiple_solutions: boolean;
+  latest_end_temp_c: number | null;
+  applicable_range: {
+    temp_c: [number, number];
+    recovered_pct: [number, number];
+    extrapolation: string;
+  };
+  messages: string[];
+  issues: Issue[];
+}

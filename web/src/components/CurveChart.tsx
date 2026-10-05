@@ -6,6 +6,8 @@ interface Props {
   sample: CurveSample;
   cuts: CutInput[];
   overlaps: Overlap[];
+  /** 求解器建议终点的预览竖线（仅实测范围内显示） */
+  previewTemp?: number | null;
 }
 
 const W = 820;
@@ -16,7 +18,7 @@ const PALETTE = [
   "#dc2626", "#9333ea", "#0d9488", "#ea580c",
 ];
 
-export default function CurveChart({ sample, cuts, overlaps }: Props) {
+export default function CurveChart({ sample, cuts, overlaps, previewTemp }: Props) {
   const [dmin, dmax] = sample.range.temp_c;
 
   const { xMin, xMax } = useMemo(() => {
@@ -127,6 +129,18 @@ export default function CurveChart({ sample, cuts, overlaps }: Props) {
         <circle key={i} cx={x(p.temp_c)} cy={y(p.recovered_pct)} r={3.5}
           fill="#fff" stroke="#1d4ed8" strokeWidth={1.5} />
       ))}
+
+      {/* 求解器建议终点预览线 */}
+      {previewTemp != null && previewTemp >= dmin && previewTemp <= dmax && (
+        <g>
+          <line x1={x(previewTemp)} x2={x(previewTemp)} y1={M.top} y2={H - M.bottom}
+            stroke="#7c3aed" strokeWidth={2} strokeDasharray="8 4" />
+          <text x={x(previewTemp)} y={M.top + 32} textAnchor="middle" fontSize="11"
+            fill="#7c3aed" fontWeight={700}>
+            建议终点 {fmtG(previewTemp)} ℃
+          </text>
+        </g>
+      )}
 
       {/* 适用范围边界 */}
       <line x1={x(dmin)} x2={x(dmin)} y1={M.top} y2={H - M.bottom} stroke="#9ca3af" strokeWidth={1} />

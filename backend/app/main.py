@@ -9,6 +9,7 @@ POST /api/experiments
 GET  /api/experiments/{id}
 GET  /api/experiments/{id}/curve/sample
 POST /api/experiments/{id}/evaluate                 仅计算，不落库
+POST /api/experiments/{id}/solve-end                按目标体积产率反推终点（只读，不落库）
 POST /api/experiments/{id}/plans                    保存方案
 GET  /api/plans/{id}                                读方案（重新计算）
 GET  /api/plans/{id}/export?format=markdown|json    导出
@@ -34,7 +35,8 @@ from .density import prepare_density
 from .exporters import build_markdown, to_json
 from .models import Experiment, Plan
 from .planning import evaluate_plan
-from .schemas import ExperimentIn, ExperimentOut, PlanIn, PlanOut
+from .schemas import ExperimentIn, ExperimentOut, PlanIn, PlanOut, SolveEndIn
+from .solver import solve_end_temp
 
 app = FastAPI(
     title="蒸馏曲线切点与产率核对（培训）",
@@ -227,6 +229,17 @@ async def evaluate(exp_id: int, payload: PlanIn) -> dict:
         if exp is None:
             raise HTTPException(404, "试验不存在")
         return _eval_experiment(exp, payload)
+
+
+@app.post("/api/experiments/{exp_id}/solve-end")
+async def solve_end(exp_id: int, payload: SolveEndIn) -> dict:
+    """按目标体积产率反推终馏切点。只读计算，不落库、不改动任何方案。"""
+    async for session in get_session():
+        exp = await session.get(Experiment, exp_id)
+        if exp is None:
+            raise HTTPException(404, "试验不存在")
+        curve = prepare_curve(exp.points)
+        return solve_end_temp(curve, payload.start_temp_c, payload.target_yield_pct)
 
 
 @app.post("/api/experiments/{exp_id}/plans", status_code=201)
